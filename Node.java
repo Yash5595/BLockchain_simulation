@@ -7,15 +7,16 @@ public class Node{
     ArrayList<Node> peers;     //pointers to Nodes are stored here
     boolean fast;
     double lambda;
-    float coins;
     boolean type;           // True => Fast CPU
-
-    float coins = rn.nextFloat()*1000 +1;               ////////decide amount
-
-    Node(int id, boolean fast, double lambda){
+    HashMap<int,double> balances;
+    float coins ;
+    Block lastBlock;
+	ArrayList<Transaction> transactions;
+    Node(int id, boolean fast, double lambda, Block b){
         this.id = id;
         this.fast = fast;
         this.lambda = lambda;
+        this.balances=new HashMap<int,double>();
         if(lambda > 0.5 ){                                                              //////// check for lambda value
             this.type = true;
         }
@@ -24,6 +25,8 @@ public class Node{
         }
         receivedStamps = new ArrayList<Double>();
         peers = new ArrayList<Node>();
+        lastBlock=b;
+    	ArrayList<Transaction> transactions=new ArrayList<Transaction>();
     }
 
     public void setPeers(int n, ArrayList<Node> all){
@@ -35,4 +38,11 @@ public class Node{
                 peers.add(all.get(i));
         }
     }
+
+    public void receiveBlock(Node n,Block b){
+		if (lastBlock.length<b.length || ((lastBlock.length==b.length)&& (lastBlock.timestamp>b.timestamp)){
+			this.balances=new HashMap<int,double>(n.balances);	//deep copy of balances
+			this.lastBlock=n.lastBlock;
+		}
+	}
 }
