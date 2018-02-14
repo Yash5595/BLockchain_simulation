@@ -1,3 +1,4 @@
+import java.util.*;
 public class Task{
 	//Types of tasks
 	static final int GENERATE_BLOCK=0;

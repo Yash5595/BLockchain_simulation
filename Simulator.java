@@ -1,8 +1,12 @@
 import java.util.*;
-public class taskComparator implements comparator<Task>{
+public class taskComparator implements Comparator<Task>{
 	@Override
 	pubilc int compare(task t1,task t2){
-		
+		if(t1.sctime<t2.sctime){
+			return -1;
+		}else{
+			return 1;
+		}
 	}
 }
 
@@ -20,6 +24,7 @@ public class Simulator{
 
 	//priority queue for scheduling tasks
 	PriorityQueue<Task> MainQueue;
+	Comparator<Task> comparator;
 	ArrayList<Node> nodes;
 	Random random;
 	double curr_time;
