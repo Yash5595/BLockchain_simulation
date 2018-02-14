@@ -132,17 +132,17 @@ public class Node{
 		broadcastTransaction(t,s);
 	}
 
-	public void generateBlock(Simulator s,int id1){
+	public void generateBlock(Simulator s,int id1,Block b){
 		double time=s.curr_time;
-		double lastTime=lastBlock.timestamp;
 		double c=Math.log(1-Math.random())/(-s.LAMBDA_TK);
-		if (lastTime+c<time){
+		if (lastBlock.id==b.id){
 			Block block=new Block(id1,time,lastBlock,this.id,lastBlock.length+1);
 			HashSet<Transaction> trans=new HashSet<Transaction>();
 			for (int i=0;i<transactions.size();i++){
 				transactions t=transactions.get(i);
-				trans.add(t);
+				
 				if (balances.get(t.fromID)>t.amount && t.spent==false){
+				trans.add(t);
 				balances.put(t.fromID,balances.get(t.fromID)-t.amount);
 				balances.put(t.toID,balances.get(t.toID)+t.amount);
 				t.spent=true;
@@ -150,11 +150,14 @@ public class Node{
 			}
 			block.transactions=trans;
 			lastBlock=block;
+			Task task=new Task(0,time+c,id1,block);
+			s.MainQueue.add(task);
 			broadcastBlock(s,block);
 		}
 	}
 
 	public void broadcastBlock(Simulator s,Block b){
+
 		double time=s.curr_time;
 		for (int i=0;i<peers.size();i++){
 			int id1=peers.get(i);
