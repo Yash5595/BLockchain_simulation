@@ -14,7 +14,7 @@ public class Node{
 	HashSet<Transaction> transactions;
 	HashMap<Integer,Transaction> mapping;
 	int num;
-	HashMap<Block,boolean> inChain;
+	HashMap<Block,Boolean> inChain;
     Node(int id, boolean fast, double lambda, Block b,int n){
         this.id = id;
         this.fast = fast;
@@ -27,7 +27,7 @@ public class Node{
         	balances.put(i,0.0);
         }
         this.num=n;
-        inChain=new HashMap<Block,boolean>();
+        inChain=new HashMap<Block,Boolean>();
     	transactions=new HashSet<Transaction>();
     	mapping=new HashMap<Integer,Transaction>();
     }
@@ -43,12 +43,12 @@ public class Node{
 
     public void checkPending(Block b){		
     	for (Block c: pendingBlock.keySet()){
-    		if ((c.parent).equals(b)){
+    		if ((c.previous_block).equals(b)){
     			blocks.get(b).add(c);
     			HashSet<Block> child=new HashSet<Block>();
     			blocks.put(c,child);
     			pendingBlock.remove(c);
-    			findlongest(c);
+    			findLongest(c);
     			checkPending(c);
     		}
     	}
@@ -101,7 +101,7 @@ public class Node{
 
     public void findLongest(Block b){
     	inChain.put(b,false);
-    	if ((b.parent).equals(lastBlock)){
+    	if ((b.previous_block).equals(lastBlock)){
     		lastBlock =b;
     		inChain.put(b,true);
     		exec(b);		//execute transactions in this block
@@ -163,7 +163,7 @@ public class Node{
 			Transaction t2=new Transaction(t);
 			transactions.add(t2);
 			mapping.put(t2.tID,t2);
-			broadcastTransaction(t2);
+			broadcastTransaction(t2,s);
 		}
 		receivedStamps.add(s.curr_time);
 	}
@@ -172,9 +172,9 @@ public class Node{
 		double time=s.curr_time;
 		System.out.println("broadcasting transaction "+ t.tID +" from "+ this.id);
 		for (int i=0;i<peers.size();i++){
-			int id1=peers.get(i).id;
-			double latency=s.latency(this.id,id1,0);
-			Task task=new Task(3,curr_time+latency,id1);			//type,time,node
+			Node id1=peers.get(i);
+			double latency=s.latency(this.id,id1.id,0);
+			Task task=new Task(Task.RECEIVE_TRANS,time+latency,id1,s,0,null,t,null);			//type,time,node
 			s.MainQueue.add(task);
 		}
 	}
@@ -194,10 +194,10 @@ public class Node{
 		Transaction t=new Transaction(Tid,this.id,i,money,time);
 		transactions.add(t);
 		mapping.put(t.tID,t);
-		Task task=new Task(2,curr_time+c,this.id);		//type of generate next transaction,time,id
+		Task task=new Task(Task.RECEIVE_TRANS,time+c,this,s,s.getNextTransId(),null,null,null);		//type of generate next transaction,time,id
 		s.MainQueue.add(task);
 		broadcastTransaction(t,s);
-		System.out.println("generated Transaction "+ Tid.tID +" from "+ this.id +" to"+ i);
+		System.out.println("generated Transaction "+ Tid +" from "+ this.id +" to"+ i);
 	}
 
 	public void generateBlock(Simulator s,int id1,Block b){
@@ -223,7 +223,7 @@ public class Node{
 		block.transactions=trans;
 		lastBlock=block;
 		inChain.put(lastBlock,true);
-		Task task=new Task(0,time+c,id1,lastBlock);
+		Task task=new Task(Task.GENERATE_BLOCK,time+c,this,s,s.getNextBlockId(),lastBlock,null,null);
 		s.MainQueue.add(task);
 		System.out.println("generated Block "+ id1 +" by "+ this.id );
 		broadcastBlock(s,block);
@@ -233,10 +233,10 @@ public class Node{
 		double time=s.curr_time;
 		System.out.println("broadcasting block "+ b.id +" from "+ this.id);
 		for (int i=0;i<peers.size();i++){
-			int id1=peers.get(i).id;
-			double latency=s.latency(this.id,id1,1);
+			Node id1=peers.get(i);
+			double latency=s.latency(this.id,id1.id,1);
 
-			Task task=new Task(1,curr_time+latency,id1);			//type,time,node
+			Task task=new Task(Task.RECEIVE_BLOCK,time+latency,id1,s,0,null,null,b);			//type,time,node
 			s.MainQueue.add(task);
 		}
 	}
