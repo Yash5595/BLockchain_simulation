@@ -12,10 +12,10 @@ public class Transaction{
     this.amount = amount;
   }
 
-  // Transaction(Transaction tr){
-  //   tID = tr.tID;
-  //   fromID = tr.fromID;
-  //   toID = tr.toID;
-  //   amount = tr.amount;
-  // }
+  Transaction(Transaction tr){
+    tID = tr.tID;
+    fromID = tr.fromID;
+    toID = tr.toID;
+    amount = tr.amount;
+  }
 }

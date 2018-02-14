@@ -5,7 +5,6 @@ public class Simulator{
 	ArrayList<ArrayList<Transaction>> trans;
 	Random rand;
 	double curr_time;
-	double
 
 	Simulator(){
 
