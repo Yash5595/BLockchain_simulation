@@ -15,12 +15,13 @@ class taskComparator implements Comparator<Task>{
 public class Simulator{
 	//inputs
 	static int n;
-	static int z;
+	static double z;
+	static double endTime;
 
 
 	//Parameters
 	double LAMBDA_TRANS;
-	double D_IJ_MEAN;
+	double D_IJ_MEAN =96000;
 	double LAMBDA_TK;
 	double[][] P_IJ=new double[n][n];
 
@@ -32,6 +33,8 @@ public class Simulator{
 	double curr_time;
 	int next_trans_id;
 	int next_block_id;
+
+	
 	Simulator(){
 		nodes = new ArrayList<Node>();
 		random = new Random();
@@ -46,7 +49,7 @@ public class Simulator{
 				random_float=random.nextFloat();
 				P_IJ[i][j]=10.0+random_float*490.0;
 			}
-		}
+		}		
 	}
 
 	void init(){
@@ -94,6 +97,7 @@ public class Simulator{
 		Node p_i = nodes.get(i);
 		Node p_j = nodes.get(j);
 		double c_ij;
+
 		if(p_i.fast && p_j.fast ==true){
 			c_ij = 100000000;
 		}
@@ -101,13 +105,35 @@ public class Simulator{
 			c_ij = 5000000;
 		}
 
-		double b = (size*8.0*1000000)/c_ij; 							////// size= 0 when transaction & 1 when block
-		double lambda = (c_ij/96000);
+		double b = (size*8.0*1000000)/c_ij;	 							//// size= 0 when transaction & 1 when block
+		double lambda = (c_ij/D_IJ_MEAN);
 		double d = Math.log(1- Math.random())/(-lambda);
-		double laten = b + P_IJ[i][j] + d;
-		return laten;
+		return (b + P_IJ[i][j] + d);
 	}
-	
 
+	void doAll(double end_time){
+		while(curr_time< end_time){
+			Task t = MainQueue.remove();
+			curr_time = t.scTime;
+			Task.simulate(t,this);
+		}
+	}
+
+	public static void main(String[] args) {
+		Scanner reader = new Scanner(System.in);
+		System.out.println("Enter Integer value for required number of nodes");
+		int n = reader.nextInt();
+
+		System.out.println("Enter Double value for required percentage of slow nodes");
+		double z = reader.nextDouble();
+
+		System.out.println("Enter Double value for the end time of simulation");
+		double endTime = reader.nextDouble();
+		reader.close();
+
+		Simulator s = new Simulator();
+		s.doAll(endTime);
+		
+	}
 
 }
