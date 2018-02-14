@@ -35,9 +35,15 @@ public class Node{
     public void setPeers(int n, ArrayList<Node> all){
         Collections.shuffle(all);
         int numPeers = rn.nextInt(n-1) + 1;
-        for(int i=0; i<numPeers; i++){
-            if(id != all.get(i).id)
-                peers.add(all.get(i));
+        for(int i=0; i<all.size(); i++){
+            if(id != all.get(i).id){
+            	peers.add(all.get(i));
+            	numPeers--;
+            }
+            if(numPeers==0){
+            	i=all.size();
+            	break;
+            }
         }
     }
 
@@ -91,10 +97,17 @@ public class Node{
     	HashSet<Transaction> ts=b.transactions;
     	for( Transaction t : ts){
     		Transaction t1=mapping.get(t.tID);
-    		if (t1.spent==true){
-	    		t1.spent=false;
-	    		balances.put(t1.fromID,balances.get(t1.fromID)+t1.amount);
-	    		balances.put(t1.toID,balances.get(t1.toID)-t1.amount);
+    		if(t1.coinbased){
+    			if(t1.spent==true){
+    				t1.spent=false;
+    				balances.put(t1.toID,balances.get(t1.toID)-t1.amount);
+            	}
+    		}else{
+    			if (t1.spent==true){
+    	    		t1.spent=false;
+    	    		balances.put(t1.fromID,balances.get(t1.fromID)+t1.amount);
+    	    		balances.put(t1.toID,balances.get(t1.toID)-t1.amount);
+        		}
     		}
     	}
     }
@@ -182,12 +195,15 @@ public class Node{
 	public void generateTransaction(Simulator s,int Tid){
 		double time=s.curr_time;
 		double c=Math.log(1-Math.random())/(-s.LAMBDA_TRANS);
-		int n=this.peers.size();
 		int i=this.id;
 		while (i==id){
-			i=rn.nextInt(n);
+			System.out.println(num+"         node 188");
+			i=rn.nextInt(num);
 		}
 		double money=0.0;
+		if(balances.get(id)<=0){
+			return;
+		}
 		while (money==0.0){
 			money=(rn.nextDouble())*balances.get(id);
 		}
@@ -212,6 +228,11 @@ public class Node{
 		double c=Math.log(1-Math.random())/(-s.LAMBDA_TK);
 		Block block=new Block(id1,time,lastBlock,this.id,lastBlock.length+1);
 		HashSet<Transaction> trans=new HashSet<Transaction>();
+		Transaction tx=new Transaction(s.getNextTransId(),-1,this.id,50,s.curr_time,true);
+		broadcastTransaction(tx,s);
+		tx.spent=true;
+		trans.add(tx);
+		balances.put(this.id,balances.get(this.id)+50);
 		for (Transaction t:transactions){		
 			if (balances.get(t.fromID)>=t.amount && t.spent==false){
 				trans.add(t);
