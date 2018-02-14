@@ -157,7 +157,6 @@ public class Node{
 	}
 
 	public void broadcastBlock(Simulator s,Block b){
-
 		double time=s.curr_time;
 		for (int i=0;i<peers.size();i++){
 			int id1=peers.get(i);
