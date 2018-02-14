@@ -8,7 +8,7 @@ public class Node{
     boolean fast;
     double lambda;
     boolean type;           // True => Fast CPU
-    HashMap<int,double> balances;
+    HashMap<Integer,Double> balances;
     HashMap<Block,HashSet<Block>> pendingBlock;
     HashMap<Block,HashSet<Block>> blocks;
     Block lastBlock;
@@ -19,7 +19,7 @@ public class Node{
         this.id = id;
         this.fast = fast;
         this.lambda = lambda;
-        this.balances=new HashMap<int,double>();
+        this.balances=new HashMap<Integer,Double>();
         if(lambda > 0.5 ){                                                              //////// check for lambda value
             this.type = true;
         }
@@ -132,7 +132,35 @@ public class Node{
 		broadcastTransaction(t,s);
 	}
 
-	public void generateBlock(Simulator s,Block last){
+	public void generateBlock(Simulator s,int id1){
+		double time=s.curr_time;
+		double lastTime=lastBlock.timestamp;
+		double c=Math.log(1-Math.random())/(-s.LAMBDA_TK);
+		if (lastTime+c<time){
+			Block block=new Block(id1,time,lastBlock,this.id,lastBlock.length+1);
+			HashSet<Transaction> trans=new HashSet<Transaction>();
+			for (int i=0;i<transactions.size();i++){
+				transactions t=transactions.get(i);
+				trans.add(t);
+				if (balances.get(t.fromID)>t.amount && t.spent==false){
+				balances.put(t.fromID,balances.get(t.fromID)-t.amount);
+				balances.put(t.toID,balances.get(t.toID)+t.amount);
+				t.spent=true;
+			}
+			}
+			block.transactions=trans;
+			lastBlock=block;
+			broadcastBlock(s,block);
+		}
+	}
 
+	public void broadcastBlock(Simulator s,Block b){
+		double time=s.curr_time;
+		for (int i=0;i<peers.size();i++){
+			int id1=peers.get(i);
+			double latency=s.latency(this.id,id1,1);
+			Task task=new Task(1,curr_time+latency,id1);			//type,time,node
+			s.MainQueue.add(task);
+		}
 	}
 }
